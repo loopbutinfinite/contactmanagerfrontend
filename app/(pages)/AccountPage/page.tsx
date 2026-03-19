@@ -1,13 +1,14 @@
 "use client";
 import { Token } from '@/interfaces/userInterface';
 import { CreateUser, GetUserByUsername, Login } from '@/lib/User-Fetches';
-import { Checkbox } from 'flowbite-react'
+import { log } from 'console';
+import { Checkbox, Label, Toast } from 'flowbite-react'
 import { Button } from 'flowbite-react/components/Button'
 import { Navbar } from 'flowbite-react/components/Navbar'
 import { TextInput } from 'flowbite-react/components/TextInput'
-import { Users, CircleQuestionMark, ChevronRight, LockIcon, MailIcon } from 'lucide-react'
+import { Users, CircleQuestionMark, Mail, Lock, ChevronRight, LockIcon, EyeIcon, MailIcon } from 'lucide-react'
 import { useRouter } from 'next/navigation';
-import { useState } from 'react'
+import React, { useState } from 'react'
 
 const accountPage = () => {
   const [username, setUsername] = useState("");
@@ -17,30 +18,30 @@ const accountPage = () => {
 
   const [switchText, setSwitchText] = useState(true);
 
-  const { push } = useRouter();
+  const {push} = useRouter();
 
   const handleSwitchingTheTextFromSignInToCreateAccount = () => setSwitchText(!switchText);
 
   const handleSubmittingUserInfo = async () => {
     const loginDetails = {
-      username,
+      username, 
       password
     }
-    if (switchText) {
+    if (switchText){
       const result = await CreateUser(loginDetails);
-      alert(result ? "Account Created!" : "Username already exists") //Change this to something else. Temp to see if it is working
+      setAccountCreation(result ? "Account Created!" : "Username already exists" )
     } else {
       const token: Token | null = await Login(loginDetails);
       console.log(token?.token);
 
-      if (token != null) {
-        if (typeof window != null) {
+      if(token != null){
+        if(typeof window != null){
           localStorage.setItem("token", token.token);
           await GetUserByUsername(username);
 
-          push("/ContactManager")
-        } else {
-          alert("Login Failed!");
+          push("/")
+        } else{
+          setAccountCreation("Login Failed!");
         }
       }
     }
@@ -58,7 +59,7 @@ const accountPage = () => {
             <span className="text-indigo-600 me-2 text-3xl font-bold">ContactManager</span>
           </div>
         </Navbar>
-        <div className="bg-white flex justify-end md:order-2 w-full max-w-sm">
+        <div className="bg-white flex md:order-2 w-full max-w-sm">
           <CircleQuestionMark className='text-black'></CircleQuestionMark>
           <p className='ms-3 text-black'>Support</p>
         </div>
@@ -74,24 +75,24 @@ const accountPage = () => {
               <div className="mb-2 text-black block">
                 <p>Email or Username</p>
               </div>
-              <TextInput onChange={(event) => setUsername(event.target.value)} type="text" icon={MailIcon} placeholder="npc@email.com" required className='[&_input]:bg-white [&_input]:text-black' />
+              <TextInput onChange={(event) => setUsername(event.target.value)} id="email" type="text" icon={MailIcon} placeholder="npc@email.com" required className='[&_input]:bg-white [&_input]:text-black'/>
             </div>
             <div>
               <div className="mb-2 block text-black">
                 <p>Password</p>
               </div>
-              <TextInput onChange={(event) => setPassword(event.target.value)} type="password" icon={LockIcon} required placeholder='password123' className='[&_input]:bg-white [&_input]:text-black' />
+              <TextInput onChange={(event) => setPassword(event.target.value)} id="password" type="password" icon={LockIcon} required placeholder='password123' className='[&_input]:bg-white [&_input]:text-black'/>
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Checkbox id="remember" className="h-5 w-5 border-gray-300 text-indigo-600 dark:bg-white focus:ring-indigo-500" />
                 <p className="font-medium text-black">Keep me signed in</p>
               </div>
-              <Button onClick={handleSwitchingTheTextFromSignInToCreateAccount} className="text-sm font-bold dark:bg-white text-indigo-600 hover:dark:bg-white hover:underline">{switchText ? "Have an Account?" : "Forgot Password?"}</Button>
+              <Button onClick={handleSwitchingTheTextFromSignInToCreateAccount} href="#" className="text-sm font-bold dark:bg-white text-indigo-600 hover:dark:bg-white hover:underline">{switchText ? "Have an Account?" : "Forgot Password?"}</Button>
             </div>
-            <Button onClick={handleSubmittingUserInfo} className="bg-indigo-600 hover:bg-indigo-700 mt-4 py-1">
+            <Button onClick={handleSubmittingUserInfo} type="submit" className="bg-indigo-600 hover:bg-indigo-700 mt-4 py-1">
               <div className="flex items-center gap-2 text-lg">
-                {switchText ? "Create Account" : "Sign In to Dashboard"}
+                Sign In to Dashboard
                 <ChevronRight></ChevronRight>
               </div>
             </Button>
