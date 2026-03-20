@@ -3,12 +3,14 @@
 import { ContactInterface } from '@/interfaces/contactInterface';
 import { DeleteContact, GetContacts } from '@/lib/Fetch';
 import { GrabToken } from '@/lib/User-Fetches';
-import { Navbar, TextInput, Button, Card, Label } from 'flowbite-react';
+import { Navbar, TextInput, Button, Card, Label, Modal, ModalBody, ModalHeader } from 'flowbite-react';
 import { Search, User, Mail, Phone, Plus, Edit, Trash2, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 const ContactManager = () => {
   const [contacts, setContacts] = useState<ContactInterface[]>([])
+  const [edit, setEdit] = useState(false);
+  const [openModal, setOpenModal] = useState(false);
 
   const [contactId, setContactId] = useState(0);
   const [name, setName] = useState("");
@@ -18,18 +20,27 @@ const ContactManager = () => {
   const handleContactName = (e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value);
   const handleContactEmail = (e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value);
   const handleContactPhoneNumber = (e: React.ChangeEvent<HTMLInputElement>) => setPhoneNumber(e.target.value);
+
   const handleDelete = async (contact: ContactInterface) => {
-    const result = await DeleteContact(contact ,GrabToken());
+    const result = await DeleteContact(contact, GrabToken());
     return result;
   };
+
+  const handleEdit = (contact: ContactInterface) => {
+    setOpenModal(true)
+    setEdit(true);
+
+    setEmail(contact.email);
+    setName(contact.name);
+    setPhoneNumber(contact.phoneNumber);
+
+  }
 
   useEffect(() => {
     const fetchContacts = async () => {
       const data: ContactInterface[] = await GetContacts(GrabToken());
       console.log(data);
-      console.log("test")
-      console.log(data[1].phoneNumber);
-      
+
       setContacts(data);
     };
     fetchContacts();
@@ -37,6 +48,46 @@ const ContactManager = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <Modal dismissible show={openModal} onClose={() => setOpenModal(false)}>
+        <ModalHeader className='text-black text-center'>Edit Contact</ModalHeader>
+        <ModalBody>
+          <form className="flex flex-col gap-4">
+            <div>
+              <Label htmlFor="name" className="font-semibold" />
+              <TextInput
+                icon={User}
+                placeholder="John Doe"
+                onChange={handleContactName}
+                required
+                className='[&_input]:bg-white [&_input]:text-black'
+              />
+            </div>
+            <div>
+              <Label htmlFor="email" className="font-semibold" />
+              <TextInput
+                icon={Mail}
+                placeholder="john.doe@example.com"
+                onChange={handleContactEmail}
+                required
+                className='[&_input]:bg-white [&_input]:text-black'
+              />
+            </div>
+            <div>
+              <Label htmlFor="phone" className="font-semibold" />
+              <TextInput
+                icon={Phone}
+                placeholder="+1 (555) 123-4567"
+                onChange={handleContactPhoneNumber}
+                required
+                className='[&_input]:bg-white [&_input]:text-black'
+              />
+            </div>
+            <Button onClick={(e) => { setOpenModal(false) }} className="bg-indigo-600 hover:bg-indigo-700 mt-2">
+              <Plus className="mr-2 h-4 w-4" /> Save Edits
+            </Button>
+          </form>
+        </ModalBody>
+      </Modal>
       <Navbar fluid className="dark:bg-white border-b border-gray-200 py-4">
         <Navbar className='dark:bg-white'>
           <div className="flex dark:bg-white items-center gap-2">
@@ -124,17 +175,17 @@ const ContactManager = () => {
                 <p className="ms-10 dark:text-black bg-gray-50 uppercase text-xs">Actions</p>
               </div>
               <div className="space-y-3">
-                {contacts.map((item, idx) => ( 
+                {contacts.map((item, idx) => (
                   <div key={idx} className='grid grid-cols-4'>
                     <div className="ms-3 whitespace-nowrap font-medium text-black">{item.name}</div>
                     <div className='dark:text-black'>{item.email}</div>
                     <div className='ms-5 text-black'>{item.phoneNumber}</div>
                     <div className='ms-10'>
                       <div className="flex gap-3">
-                        <button className="text-indigo-600 hover:text-indigo-900">
+                        <button onClick={() => { handleEdit(item), setOpenModal(true) }} className="text-indigo-600 hover:text-indigo-900">
                           <Edit className="w-5 h-5" />
                         </button>
-                        <button onClick={() => {handleDelete(item)}} className="text-red-500 hover:text-red-700 bg-red-100 p-1 rounded">
+                        <button onClick={() => { handleDelete(item) }} className="text-red-500 hover:text-red-700 bg-red-100 p-1 rounded">
                           <Trash2 className="w-5 h-5" />
                         </button>
                       </div>
