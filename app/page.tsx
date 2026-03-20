@@ -54,7 +54,7 @@ const accountPage = () => {
         <ModalHeader>Status</ModalHeader>
         <ModalBody>{accountCreation}</ModalBody>
       </Modal>
-      <Navbar fluid className="dark:bg-white border-b border-gray-200 py-4">
+      <Navbar fluid className="dark:bg-white border-b border-gray-20`0 py-4">
         <Navbar className='dark:bg-white'>
           <div className="flex dark:bg-white items-center gap-2">
             <div className="bg-indigo-600 p-1.5 rounded-lg">
@@ -68,7 +68,7 @@ const accountPage = () => {
           <p className='ms-3 text-black'>Support</p>
         </div>
       </Navbar>
-      <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
+      <div className="grid min-h-screen items-center justify-center bg-gray-50 p-4">
         <div className="w-full max-w-md rounded-lg border border-gray-100 bg-white p-8 shadow-sm">
           <div className="mb-8 text-center">
             <h1 className="mb-2 text-3xl font-bold text-gray-900">{switchText ? "Create Account" : "Sign In"}</h1>
@@ -92,7 +92,7 @@ const accountPage = () => {
                 <Checkbox id="remember" className="h-5 w-5 border-gray-300 text-indigo-600 dark:bg-white focus:ring-indigo-500" />
                 <p className="font-medium text-black">Keep me signed in</p>
               </div>
-              <Button onClick={handleSwitchingTheTextFromSignInToCreateAccount} className="text-sm font-bold dark:bg-white text-indigo-600 hover:dark:bg-white hover:underline">{switchText ? "Have an Account?" : "Forgot Password?"}</Button>
+              <Button className="text-sm font-bold dark:bg-white text-indigo-600 hover:dark:bg-white hover:underline">{switchText ? "" : "Forgot Password?"}</Button>
             </div>
             <Button onClick={handleSubmittingUserInfo} className="bg-indigo-600 hover:bg-indigo-700 mt-4 py-1">
               <div className="flex items-center gap-2 text-lg">
@@ -101,6 +101,13 @@ const accountPage = () => {
               </div>
             </Button>
           </form>
+          <div className='grid'>
+            <hr className='my-4 border-t-2 border-gray-300' />
+            <div className='flex justify-center'>
+              <p className='text-black mt-auto mb-auto'>New to the platform?</p>
+              <Button onClick={handleSwitchingTheTextFromSignInToCreateAccount} className='text-indigo-600 font-semibold  dark:bg-white hover:dark:border-none hover:dark:bg-white hover:underline'>{switchText ? "Have an Account?" : "Forgot Password?"}</Button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

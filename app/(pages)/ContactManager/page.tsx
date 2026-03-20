@@ -1,17 +1,18 @@
 "use client";
 
 import { ContactInterface } from '@/interfaces/contactInterface';
-import { DeleteContact, GetContacts, AddContact } from '@/lib/Fetch';
+import { DeleteContact, GetContacts, AddContact, GetContactsByEmail, GetContactsByName, GetContactsByPhoneNumber } from '@/lib/Fetch';
 import { GrabToken } from '@/lib/User-Fetches';
 import { Navbar, TextInput, Button, Card, Label, Modal, ModalHeader, ModalBody } from 'flowbite-react';
-import { Search, User, Mail, Phone, Plus, Edit, Trash2, Users } from 'lucide-react';
+import { Search, User, Mail, Phone, Plus, Edit, Trash2, Users, Grab } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 const ContactManager = () => {
   const [contacts, setContacts] = useState<ContactInterface[]>([]);
   const [edit, setEdit] = useState(false);
   const [openModal, setOpenModal] = useState(false);
-  const [search, setSearch] = useState("");
+
+  const [openSearchModal, setOpenSearchModal] = useState(false);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -34,6 +35,35 @@ const ContactManager = () => {
     setName(contact.name);
     setPhoneNumber(contact.phoneNumber);
 
+  }
+
+  const handleRemeberMe = async () => {}
+
+  const handleSearchResult = async (contact: ContactInterface) => {
+    const searchedContact: ContactInterface = {
+      id:0,
+      name,
+      email, 
+      phoneNumber
+    }
+    if(contact.name != null){
+      const nameSearch = await GetContactsByName(contact, GrabToken());
+      setName(searchedContact.name);
+      setEmail(searchedContact.email);
+      setPhoneNumber(searchedContact.phoneNumber);
+    }else if(contact.email != null){
+      const emailSearch = await GetContactsByEmail(contact, GrabToken());
+      setName(searchedContact.name);
+      setEmail(searchedContact.email);
+      setPhoneNumber(searchedContact.phoneNumber);
+    } else if (contact.phoneNumber != null){
+      const phoneSearch = await GetContactsByPhoneNumber(contact, GrabToken());
+      setName(searchedContact.name);
+      setEmail(searchedContact.email);
+      setPhoneNumber(searchedContact.phoneNumber);
+    } else{
+      return "Search Failed"
+    }
   }
 
   const handleAddingContact = async () => {
@@ -64,6 +94,12 @@ const ContactManager = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <Modal dismissible show={openSearchModal} onClose={() => setOpenSearchModal(false)}>
+        <ModalHeader>Search Result</ModalHeader>
+        <ModalBody>
+
+        </ModalBody>
+      </Modal>
       <Modal dismissible show={openModal} onClose={() => setOpenModal(false)}>
         <ModalHeader className='text-black text-center'>Edit Contact</ModalHeader>
         <ModalBody>
@@ -121,8 +157,7 @@ const ContactManager = () => {
             type="text"
             icon={Search}
             placeholder="Search contacts..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => { setOpenSearchModal(true), handleSearchResult }}
             className="w-full [&_input]:bg-white [&_input]:text-black"
           />
         </div>
