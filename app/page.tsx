@@ -1,7 +1,7 @@
 "use client";
 import { Token } from '@/interfaces/userInterface';
 import { CreateUser, GetUserByUsername, Login } from '@/lib/User-Fetches';
-import { Checkbox } from 'flowbite-react'
+import { Checkbox, Modal, ModalBody, ModalHeader } from 'flowbite-react'
 import { Button } from 'flowbite-react/components/Button'
 import { Navbar } from 'flowbite-react/components/Navbar'
 import { TextInput } from 'flowbite-react/components/TextInput'
@@ -12,6 +12,7 @@ import { useState } from 'react'
 const accountPage = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [openModal, setOpenModal] = useState(false);
 
   const [accountCreation, setAccountCreation] = useState("");
 
@@ -28,20 +29,20 @@ const accountPage = () => {
     }
     if (switchText) {
       const result = await CreateUser(loginDetails);
-      alert(result ? "Account Created!" : "Username already exists") //Change this to something else. Temp to see if it is working
+      setAccountCreation(result ? "Account has been successfully created!" : "Username already exists") //Change this to something else. Temp to see if it is working
+      setOpenModal(true);
     } else {
       const token: Token | null = await Login(loginDetails);
       console.log(token?.token);
 
-      if (token != null) {
-        if (typeof window != null) {
-          localStorage.setItem("token", token.token);
-          await GetUserByUsername(username);
+      if (token) {
+        localStorage.setItem("token", token.token);
+        await GetUserByUsername(username);
 
-          push("/ContactManager")
-        } else {
-          alert("Login Failed!");
-        }
+        push("/ContactManager")
+      } else {
+        setAccountCreation("Login Failed");
+        setOpenModal(true);
       }
     }
   };
@@ -49,6 +50,10 @@ const accountPage = () => {
 
   return (
     <div className='bg-white'>
+      <Modal dismissible show={openModal} onClose={() => setOpenModal(false)}>
+        <ModalHeader>Status</ModalHeader>
+        <ModalBody>{accountCreation}</ModalBody>
+      </Modal>
       <Navbar fluid className="dark:bg-white border-b border-gray-200 py-4">
         <Navbar className='dark:bg-white'>
           <div className="flex dark:bg-white items-center gap-2">
@@ -67,7 +72,7 @@ const accountPage = () => {
         <div className="w-full max-w-md rounded-lg border border-gray-100 bg-white p-8 shadow-sm">
           <div className="mb-8 text-center">
             <h1 className="mb-2 text-3xl font-bold text-gray-900">{switchText ? "Create Account" : "Sign In"}</h1>
-            <p className="text-gray-500">Enter your credentials to access your workspace.{accountCreation}</p>
+            <p className="text-gray-500">{switchText ? "Create an account to get started!" : "Enter your credentials to access your workspace"}</p>
           </div>
           <form className="flex flex-col gap-5">
             <div>
@@ -91,7 +96,7 @@ const accountPage = () => {
             </div>
             <Button onClick={handleSubmittingUserInfo} className="bg-indigo-600 hover:bg-indigo-700 mt-4 py-1">
               <div className="flex items-center gap-2 text-lg">
-                {switchText ? "Create Account" : "Sign In to Dashboard"}
+                {switchText ? "Create my Account" : "Sign In to Dashboard"}
                 <ChevronRight></ChevronRight>
               </div>
             </Button>
