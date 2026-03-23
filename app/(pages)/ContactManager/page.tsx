@@ -1,10 +1,12 @@
 "use client";
 
 import { ContactInterface } from '@/interfaces/contactInterface';
-import { DeleteContact, GetContacts, AddContact, GetContactsByEmail, GetContactsByName, GetContactsByPhoneNumber } from '@/lib/Fetch';
-import { GrabToken } from '@/lib/User-Fetches';
+import { UserData } from '@/interfaces/userInterface';
+import { DeleteContact, GetContacts, AddContact, GetContactsByEmail, GetContactsByName, GetContactsByPhoneNumber, GetContactsByUserId } from '@/lib/Fetch';
+import { GrabToken, IsTokenValid, LoggedInUser } from '@/lib/User-Fetches';
 import { Navbar, TextInput, Button, Card, Label, Modal, ModalHeader, ModalBody } from 'flowbite-react';
 import { Search, User, Mail, Phone, Plus, Edit, Trash2, Users, Grab } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 const ContactManager = () => {
@@ -12,11 +14,27 @@ const ContactManager = () => {
   const [edit, setEdit] = useState(false);
   const [openModal, setOpenModal] = useState(false);
 
+  const {push} = useRouter();
+
   const [openSearchModal, setOpenSearchModal] = useState(false);
+  const [contactUserId, setContactUserId] = useState(0);
+  const [contactId, setContactId] = useState(0);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
+
+  useEffect(() => {
+    const GetUserLogin = async () => {
+      const userLoggedIn: UserData = LoggedInUser();
+
+      const data = await GetContactsByUserId(userLoggedIn.id,GrabToken());
+      setContacts(data);
+    };
+
+    if(!IsTokenValid()) push("/");
+    else GetUserLogin();
+  }, []);
 
   const handleContactName = (e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value);
   const handleContactEmail = (e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value);
@@ -42,6 +60,7 @@ const ContactManager = () => {
   const handleSearchResult = async (contact: ContactInterface) => {
     const searchedContact: ContactInterface = {
       id:0,
+      userId:0,
       name,
       email, 
       phoneNumber
@@ -69,12 +88,13 @@ const ContactManager = () => {
   const handleAddingContact = async () => {
     const newContact: ContactInterface = {
       id: 0,
+      userId: 0,
       name,
       email,
       phoneNumber
     };
 
-    const created = await AddContact(newContact);
+    const created = await AddContact(newContact, GrabToken());
 
     if (created) {
       setContacts((prev) => [...prev, created]);
@@ -84,13 +104,6 @@ const ContactManager = () => {
     }
   };
 
-  useEffect(() => {
-    const fetchContacts = async () => {
-      const data: ContactInterface[] = await GetContacts(GrabToken());
-      setContacts(data);
-    };
-    fetchContacts();
-  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">

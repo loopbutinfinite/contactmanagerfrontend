@@ -35,11 +35,13 @@ const accountPage = () => {
       const token: Token | null = await Login(loginDetails);
       console.log(token?.token);
 
-      if (token) {
-        localStorage.setItem("token", token.token);
-        await GetUserByUsername(username);
+      if (token != null) {
+        if (typeof window != "undefined") {
+          localStorage.setItem("token", token.token);
+          await GetUserByUsername(username);
+          push("/ContactManager")
+        }
 
-        push("/ContactManager")
       } else {
         setAccountCreation("Login Failed");
         setOpenModal(true);
