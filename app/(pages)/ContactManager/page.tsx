@@ -24,18 +24,6 @@ const ContactManager = () => {
   const [email, setEmail] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
 
-  useEffect(() => {
-    const GetUserLogin = async () => {
-      const userLoggedIn: UserData = LoggedInUser();
-
-      const data = await GetContactsByUserId(userLoggedIn.id,GrabToken());
-      setContacts(data);
-    };
-
-    if(!IsTokenValid()) push("/");
-    else GetUserLogin();
-  }, []);
-
   const handleContactName = (e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value);
   const handleContactEmail = (e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value);
   const handleContactPhoneNumber = (e: React.ChangeEvent<HTMLInputElement>) => setPhoneNumber(e.target.value);
@@ -55,7 +43,10 @@ const ContactManager = () => {
 
   }
 
-  const handleRemeberMe = async () => {}
+  const handleRemeberMe = async () => {
+    const keepUserLoggedIn:UserData = LoggedInUser();
+
+  }
 
   const handleSearchResult = async (contact: ContactInterface) => {
     const searchedContact: ContactInterface = {
@@ -104,6 +95,20 @@ const ContactManager = () => {
     }
   };
 
+  useEffect(() => {
+    const GetUserLogin = async () => {
+      const userLoggedIn: UserData = LoggedInUser();
+
+      const data = await GetContactsByUserId(userLoggedIn.id,GrabToken());
+      setContacts(data);
+    };
+
+    if(!IsTokenValid()){
+      console.log("firing")
+      push("/");
+    } 
+    else{ GetUserLogin()};
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">

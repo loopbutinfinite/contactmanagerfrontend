@@ -13,6 +13,7 @@ const accountPage = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [openModal, setOpenModal] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
   const [accountCreation, setAccountCreation] = useState("");
 
@@ -37,7 +38,11 @@ const accountPage = () => {
 
       if (token != null) {
         if (typeof window != "undefined") {
-          localStorage.setItem("token", token.token);
+          if(rememberMe){
+            localStorage.setItem("token", token.token);
+          } else {
+            sessionStorage.setItem("token", token.token);
+          }
           await GetUserByUsername(username);
           push("/ContactManager")
         }
@@ -91,7 +96,7 @@ const accountPage = () => {
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Checkbox id="remember" className="h-5 w-5 border-gray-300 text-indigo-600 dark:bg-white focus:ring-indigo-500" />
+                <Checkbox checked={rememberMe} onChange={() => setRememberMe(!rememberMe)} className="h-5 w-5 border-gray-300 text-indigo-600 dark:bg-white focus:ring-indigo-500" />
                 <p className="font-medium text-black">Keep me signed in</p>
               </div>
               <Button className="text-sm font-bold dark:bg-white text-indigo-600 hover:dark:bg-white hover:underline">{switchText ? "" : "Forgot Password?"}</Button>
