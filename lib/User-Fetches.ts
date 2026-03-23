@@ -49,11 +49,15 @@ export const GetUserByUsername = async (username: string) => {
     localStorage.setItem("user", JSON.stringify(data));
 };
 
-export const IsTokenValid = () => {
-    const token = localStorage.getItem("token");
-    return !!token;
+//This allows for the function to check for the user's token through LocalStorage(if they clicked remember me) or the Session Storage that will disappear when the user closes the window.
+export const IsTokenValid = (): boolean => {
+  const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+  return token != null;
 };
 
-export const GrabToken = () => localStorage.getItem("token") ?? "";
+export const GrabToken = (): string => {
+  const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+  return token ?? "";
+};
 
 export const LoggedInUser = () => JSON.parse(localStorage.getItem("user")!);

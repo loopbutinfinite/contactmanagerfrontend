@@ -2,19 +2,23 @@
 
 import { ContactInterface } from '@/interfaces/contactInterface';
 import { UserData } from '@/interfaces/userInterface';
-import { DeleteContact, GetContacts, AddContact, GetContactsByEmail, GetContactsByName, GetContactsByPhoneNumber, GetContactsByUserId } from '@/lib/Fetch';
+import { DeleteContact, GetContacts, AddContact, GetContactsByEmail, GetContactsByName, GetContactsByPhoneNumber, GetContactsByUserId, EditContact } from '@/lib/Fetch';
 import { GrabToken, IsTokenValid, LoggedInUser } from '@/lib/User-Fetches';
 import { Navbar, TextInput, Button, Card, Label, Modal, ModalHeader, ModalBody } from 'flowbite-react';
-import { Search, User, Mail, Phone, Plus, Edit, Trash2, Users, Grab } from 'lucide-react';
+import { Search, User, Mail, Phone, Plus, Edit, Trash2, Users, Grab, UserIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 const ContactManager = () => {
   const [contacts, setContacts] = useState<ContactInterface[]>([]);
-  const [edit, setEdit] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editEmail, setEditEmail] = useState("");
+  const [editPhoneNumber, setEditPhoneNumber] = useState("");
   const [openModal, setOpenModal] = useState(false);
+  const [searchEntry, setSearchEntry] = useState("");
+  const [searchedForContact, setSearchedForContact] = useState<ContactInterface | null>(null);
 
-  const {push} = useRouter();
+  const { push } = useRouter();
 
   const [openSearchModal, setOpenSearchModal] = useState(false);
   const [contactUserId, setContactUserId] = useState(0);
@@ -34,46 +38,47 @@ const ContactManager = () => {
   };
 
   const handleEdit = (contact: ContactInterface) => {
-    setOpenModal(true)
-    setEdit(true);
-
-    setEmail(contact.email);
-    setName(contact.name);
-    setPhoneNumber(contact.phoneNumber);
-
+    setOpenModal(true);
+    setContactId(contact.id);
+    setEditEmail(contact.email);
+    setEditName(contact.name);
+    setEditPhoneNumber(contact.phoneNumber);
   }
 
-  const handleRemeberMe = async () => {
-    const keepUserLoggedIn:UserData = LoggedInUser();
+  const handleSaveEdit = async () => {
+    const updatedContact: ContactInterface = {
+      id: contactId,
+      userId: contactUserId,
+      name: editName,
+      email: editEmail,
+      phoneNumber: editPhoneNumber
+    };
 
+    const result = await EditContact(updatedContact, GrabToken());
+
+    if (result) {
+      setContacts((prev) =>
+        prev.map((contact) => (contact.id === contactId ? updatedContact : contact)))
+    };
+    setOpenModal(false);
   }
 
-  const handleSearchResult = async (contact: ContactInterface) => {
-    const searchedContact: ContactInterface = {
-      id:0,
-      userId:0,
-      name,
-      email, 
-      phoneNumber
+  const handleSearchResult = async () => {
+    const search = searchEntry.toLowerCase();
+
+    const found = contacts.find((contact) =>
+      contact.name.toLowerCase().includes(search) ||
+      contact.email.toLowerCase().includes(search) ||
+      contact.phoneNumber.toLowerCase().includes(search)
+    );
+
+    if (found) {
+      setSearchedForContact(found);
+    } else {
+      setSearchedForContact(null);
     }
-    if(contact.name != null){
-      const nameSearch = await GetContactsByName(contact, GrabToken());
-      setName(searchedContact.name);
-      setEmail(searchedContact.email);
-      setPhoneNumber(searchedContact.phoneNumber);
-    }else if(contact.email != null){
-      const emailSearch = await GetContactsByEmail(contact, GrabToken());
-      setName(searchedContact.name);
-      setEmail(searchedContact.email);
-      setPhoneNumber(searchedContact.phoneNumber);
-    } else if (contact.phoneNumber != null){
-      const phoneSearch = await GetContactsByPhoneNumber(contact, GrabToken());
-      setName(searchedContact.name);
-      setEmail(searchedContact.email);
-      setPhoneNumber(searchedContact.phoneNumber);
-    } else{
-      return "Search Failed"
-    }
+
+    setOpenSearchModal(true);
   }
 
   const handleAddingContact = async () => {
@@ -99,15 +104,16 @@ const ContactManager = () => {
     const GetUserLogin = async () => {
       const userLoggedIn: UserData = LoggedInUser();
 
-      const data = await GetContactsByUserId(userLoggedIn.id,GrabToken());
+      const data = await GetContacts(GrabToken());
+      console.log("Raw API response:", data)
+      console.log("Token used:", GrabToken())
       setContacts(data);
     };
 
-    if(!IsTokenValid()){
-      console.log("firing")
+    if (!IsTokenValid()) {
       push("/");
-    } 
-    else{ GetUserLogin()};
+    }
+    else { GetUserLogin() };
   }, []);
 
   return (
@@ -115,7 +121,24 @@ const ContactManager = () => {
       <Modal dismissible show={openSearchModal} onClose={() => setOpenSearchModal(false)}>
         <ModalHeader>Search Result</ModalHeader>
         <ModalBody>
-
+          {searchedForContact ? (
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center gap-2">
+                <UserIcon className="dark:text-white w-7 h-7 text-white" />
+                <span className="text-white text-2xl">{searchedForContact.name}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Mail className="w-7 h-7 text-white" />
+                <span className="text-white text-2xl">{searchedForContact.email}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Phone className="w-7 h-7 text-white" />
+                <span className="text-white text-2xl">{searchedForContact.phoneNumber}</span>
+              </div>
+            </div>
+          ) : (
+            <p className="text-white text-2xl">No contact found for &quot;{searchEntry}&quot;.</p>
+          )}
         </ModalBody>
       </Modal>
       <Modal dismissible show={openModal} onClose={() => setOpenModal(false)}>
@@ -127,7 +150,8 @@ const ContactManager = () => {
               <TextInput
                 icon={User}
                 placeholder="John Doe"
-                onChange={handleContactName}
+                value={editName}
+                onChange={(event) => setEditName(event.target.value)}
                 required
                 className='[&_input]:bg-white [&_input]:text-black'
               />
@@ -137,7 +161,8 @@ const ContactManager = () => {
               <TextInput
                 icon={Mail}
                 placeholder="john.doe@example.com"
-                onChange={handleContactEmail}
+                value={editEmail}
+                onChange={(event) => setEditEmail(event.target.value)}
                 required
                 className='[&_input]:bg-white [&_input]:text-black'
               />
@@ -147,12 +172,13 @@ const ContactManager = () => {
               <TextInput
                 icon={Phone}
                 placeholder="+1 (555) 123-4567"
-                onChange={handleContactPhoneNumber}
+                value={editPhoneNumber}
+                onChange={(event) => setEditPhoneNumber(event.target.value)}
                 required
                 className='[&_input]:bg-white [&_input]:text-black'
               />
             </div>
-            <Button onClick={(e) => { setOpenModal(false) }} className="bg-indigo-600 hover:bg-indigo-700 mt-2">
+            <Button onClick={handleSaveEdit} className="bg-indigo-600 hover:bg-indigo-700 mt-2">
               <Plus className="mr-2 h-4 w-4" /> Save Edits
             </Button>
           </form>
@@ -175,7 +201,9 @@ const ContactManager = () => {
             type="text"
             icon={Search}
             placeholder="Search contacts..."
-            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => { setOpenSearchModal(true), handleSearchResult }}
+            value={searchEntry}
+            onChange={(event) => setSearchEntry(event.target.value)}
+            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => { if (e.key === "Enter") handleSearchResult() }}
             className="w-full [&_input]:bg-white [&_input]:text-black"
           />
         </div>
@@ -193,6 +221,7 @@ const ContactManager = () => {
                 <TextInput
                   icon={User}
                   placeholder="John Doe"
+                  value={name}
                   onChange={handleContactName}
                   required
                   className='[&_input]:bg-white [&_input]:text-black'
@@ -203,6 +232,7 @@ const ContactManager = () => {
                 <TextInput
                   icon={Mail}
                   placeholder="john.doe@example.com"
+                  value={email}
                   onChange={handleContactEmail}
                   required
                   className='[&_input]:bg-white [&_input]:text-black'
@@ -213,6 +243,7 @@ const ContactManager = () => {
                 <TextInput
                   icon={Phone}
                   placeholder="+1 (555) 123-4567"
+                  value={phoneNumber}
                   onChange={handleContactPhoneNumber}
                   required
                   className='[&_input]:bg-white [&_input]:text-black'
@@ -249,7 +280,7 @@ const ContactManager = () => {
 
                     <div className='ms-10'>
                       <div className="flex gap-3">
-                        <button onClick={() => { handleEdit(item), setOpenModal(true) }} className="text-indigo-600 hover:text-indigo-900">
+                        <button onClick={() => handleEdit(item)} className="text-indigo-600 hover:text-indigo-900">
                           <Edit className="w-5 h-5" />
                         </button>
 

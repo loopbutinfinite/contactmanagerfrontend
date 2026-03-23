@@ -45,7 +45,7 @@ export const GetContacts = async (token: string) => {
 };
 
 export const GetContactsByName = async (name: ContactInterface, token: string) => {
-    const response = await fetch(url + name, {
+    const response = await fetch(url + "GetContactByName/" + name, {
         method: "GET", 
         headers: {
             "Content-Type":"application/json",
@@ -66,7 +66,7 @@ export const GetContactsByName = async (name: ContactInterface, token: string) =
 };
 
 export const GetContactsByPhoneNumber = async (phoneNumber: ContactInterface, token: string) => {
-    const response = await fetch(url + phoneNumber, {
+    const response = await fetch(url + "GetContactByPhoneNumber/"  + phoneNumber, {
         method:"GET", 
         headers: {
             "Content-Type":"application/json",
@@ -87,7 +87,7 @@ export const GetContactsByPhoneNumber = async (phoneNumber: ContactInterface, to
 };
 
 export const GetContactsByEmail = async (email: ContactInterface, token: string) => {
-    const response = await fetch(url + email, {
+    const response = await fetch(url + "GetContactByEmail/"  + email, {
         method: "GET",
         headers: {
             "Content-Type":"application/json",
@@ -155,7 +155,7 @@ export const GetContactsByUserId = async (userId:number, token:string) => {
     const response = await fetch(url + "GetContactsByUserId/" + userId, {
         method:"GET", 
         headers: {
-            "ContentType":"application/json",
+            "Content-Type":"application/json",
             "Authorization":"Bearer " + token
         }
     });
@@ -169,5 +169,5 @@ export const GetContactsByUserId = async (userId:number, token:string) => {
     }
 
     const data = await response.json();
-    return data.contacts;
-}
+    return data;
+};
